@@ -2,14 +2,33 @@ package entities;
 
 import java.util.List;
 
+/**
+ * the information of pattern
+ * @author wei.he
+ *
+ */
 public class PatternInformation {
-	public int row, col;
+    	/**
+    	 * row count
+    	 */
+	public int row;
 	/**
-	 * 0, don't care, 1, ze, 2, ping
+	 * col count
+	 */
+	public int col;
+	/**
+	 * the tonal requirement for each cell, 0, don't care, 1, ze, 2, ping
 	 */
 	public int tonals[][] = null;
+	/**
+	 * whether each line is ruyun
+	 */
 	public boolean ruyun[] = null;
-
+	
+	/**
+	 * constructor
+	 * @param tonalStrs tonal requirements
+	 */
 	public PatternInformation(List<String> tonalStrs) {
 		row = tonalStrs.size();
 		col = tonalStrs.get(0).endsWith("x") ? tonalStrs.get(0).length() - 1 : tonalStrs.get(0).length();

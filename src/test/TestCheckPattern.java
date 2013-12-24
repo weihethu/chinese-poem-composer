@@ -9,6 +9,11 @@ import managers.TonalManager;
 import entities.PatternCheckResult;
 import entities.Poem;
 
+/**
+ * Test whether pattern checking works correct
+ * @author wei.he
+ *
+ */
 public class TestCheckPattern {
 
 	/**

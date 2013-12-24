@@ -12,14 +12,39 @@ import org.apache.lucene.analysis.cn.smart.SmartChineseAnalyzer;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.util.Version;
 
+/**
+ * a utility class for dealing with Chinese characters
+ * 
+ * @author wei.he
+ * 
+ */
 public class ChineseUtil {
 
+    /**
+     * the UNICODE for Chinese blank character
+     */
     public static int BLANK_CHN = 12288;
+    /**
+     * the UNICODE for Chinese comma character
+     */
     public static int COMMA_CHN = 65292;
+    /**
+     * the UNICODE for Chinese dot character
+     */
     public static int DOT_CHN = 12290;
 
+    /**
+     * a cache that stores the previously computed tokenize results
+     */
     private static Map<String, Set<String>> cache = new HashMap<String, Set<String>>();
 
+    /**
+     * tokenize a line using SmartChineseAnalyzer in lucene
+     * 
+     * @param line
+     *            line
+     * @return tokenized results
+     */
     public static Set<String> Tokenize(String line) {
 	if (cache.containsKey(line))
 	    return cache.get(line);
@@ -46,6 +71,13 @@ public class ChineseUtil {
 	return tokens;
     }
 
+    /**
+     * trim a Chinese line
+     * 
+     * @param s
+     *            line
+     * @return trimmed result
+     */
     public static String trim(String s) {
 	s = s.trim();
 	int start = 0, end = s.length() - 1;

@@ -16,12 +16,35 @@ import topicModelSolvers.plsiSolver;
 import topicModelSolvers.solverInterface;
 import utils.ChineseUtil;
 
+/**
+ * the topic model manager
+ * 
+ * @author wei.he
+ * 
+ */
 public class TopicModelManager {
+    /**
+     * manager instance
+     */
     private static TopicModelManager instance = null;
+    /**
+     * topic model solver, can be plsi or lda
+     */
     private solverInterface topicModelSolver = null;
+    /**
+     * the term-topic probability
+     */
     private Map<String, double[]> termTopicProbsMap = null;
+    /**
+     * the topic number
+     */
     private int nTopic = -1;
 
+    /**
+     * get manager instance
+     * 
+     * @return instance
+     */
     public static TopicModelManager getInstance() {
 	if (instance == null)
 	    instance = new TopicModelManager();
@@ -29,9 +52,20 @@ public class TopicModelManager {
 	return instance;
     }
 
+    /**
+     * private constructor
+     */
     private TopicModelManager() {
     }
 
+    /**
+     * train topic models
+     * 
+     * @param nTopic
+     *            topic number
+     * @param trainResultFile
+     *            train result file
+     */
     public void train(int nTopic, String trainResultFile) {
 	topicModelSolver = new plsiSolver(nTopic, true);
 	topicModelSolver.readInput();
@@ -39,6 +73,11 @@ public class TopicModelManager {
 	topicModelSolver.printResults(trainResultFile);
     }
 
+    /**
+     * read train result file and construct term-topic probability matrix
+     * 
+     * @param trainResultFile
+     */
     public void readTermTopicProbs(String trainResultFile) {
 	nTopic = -1;
 	termTopicProbsMap = new HashMap<String, double[]>();
@@ -64,11 +103,18 @@ public class TopicModelManager {
 	    }
 	    br.close();
 	} catch (IOException e) {
-	    // TODO Auto-generated catch block
 	    e.printStackTrace();
 	}
     }
 
+    /**
+     * get topic distributions of a given line by calculating the sum of each
+     * tokens
+     * 
+     * @param line
+     *            line
+     * @return an array indication topic distributions
+     */
     public double[] getTopicProbVector(String line) {
 	assert (termTopicProbsMap != null && !termTopicProbsMap.isEmpty());
 	Set<String> terms = ChineseUtil.Tokenize(line);
@@ -87,6 +133,13 @@ public class TopicModelManager {
 	return probsSum;
     }
 
+    /**
+     * get topic distributions of multiple lines
+     * 
+     * @param lines
+     *            lines in array
+     * @return topic distributions
+     */
     public double[] getTopicProbVector(String[] lines) {
 	List<String> linesList = new ArrayList<String>();
 	for (String line : lines)
@@ -94,6 +147,13 @@ public class TopicModelManager {
 	return getTopicProbVector(linesList);
     }
 
+    /**
+     * get topic distributions of multiple lines
+     * 
+     * @param lines
+     *            lines in list
+     * @return topic distributions
+     */
     public double[] getTopicProbVector(List<String> lines) {
 	double probsSum[] = new double[nTopic];
 	Arrays.fill(probsSum, 0);
@@ -106,6 +166,15 @@ public class TopicModelManager {
 	return probsSum;
     }
 
+    /**
+     * get similarity of two distributions
+     * 
+     * @param v1
+     *            first distribution
+     * @param v2
+     *            second distribution
+     * @return similarity
+     */
     public static double calculateSimilarity(double[] v1, double[] v2) {
 	double tmp = 0, tmp1 = 0, tmp2 = 0;
 	for (int i = 0; i < v1.length; i++) {
@@ -118,8 +187,21 @@ public class TopicModelManager {
 	return tmp / Math.sqrt(tmp1 * tmp2);
     }
 
-    public double calculateTopicConcentrationScore(double[] distributions,
-	    int concentration_topic_num) {
+    /**
+     * calculate the concentration level of topic distributions by measuring the
+     * proportion of the probability masses in its top K peak topics
+     * 
+     * @param distributions
+     *            topic distributions
+     * @param K
+     *            the number of peak topics measured
+     * @return a score which indicates the concentration level of top K peak
+     *         topics, 1/nTopic is the minimum in the case of even distributions
+     *         among topics, meaning no concentration at all, 1/K is the maximum
+     *         in the case the top K peak topics occupy all the probability
+     *         masses
+     */
+    public double calculateTopicConcentrationScore(double[] distributions, int K) {
 	assert (distributions.length == nTopic);
 	List<Double> tmpList = new ArrayList<Double>();
 	double sum = 0;
@@ -130,10 +212,9 @@ public class TopicModelManager {
 	Collections.sort(tmpList);
 
 	double sum1 = 0;
-	for (int i = tmpList.size() - 1; i >= tmpList.size()
-		- concentration_topic_num; i--) {
+	for (int i = tmpList.size() - 1; i >= tmpList.size() - K; i--) {
 	    sum1 += tmpList.get(i);
 	}
-	return sum1 / (sum * concentration_topic_num);
+	return sum1 / (sum * K);
     }
 }

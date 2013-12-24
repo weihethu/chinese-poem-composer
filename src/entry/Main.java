@@ -26,7 +26,6 @@ public class Main {
 		TopicModelManager.getInstance().readTermTopicProbs("topic1.txt");
 
 		MainFrame frame = new MainFrame();
-		frame.setSize(550, 700);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setVisible(true);
 

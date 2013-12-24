@@ -11,6 +11,11 @@ import java.util.List;
 
 import entities.Collocation;
 
+/**
+ * extract the top collocation pairs
+ * @author wei.he
+ *
+ */
 public class TestCollocations {
 
     /**

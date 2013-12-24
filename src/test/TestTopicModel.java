@@ -11,6 +11,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * term and its associated probability in topic
+ * @author wei.he
+ *
+ */
 class TermWithProb {
 	String term;
 	double prob;
@@ -21,6 +26,11 @@ class TermWithProb {
 	}
 }
 
+/**
+ * extract the high probability tokens in topics
+ * @author wei.he
+ *
+ */
 public class TestTopicModel {
 
 	private static Map<String, double[]> termTopicProbsMap = null;
@@ -29,7 +39,6 @@ public class TestTopicModel {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
 		try {
 			termTopicProbsMap = new HashMap<String, double[]>();
 			BufferedReader br = new BufferedReader(new FileReader(new File("topic1.txt")));
@@ -76,7 +85,6 @@ public class TestTopicModel {
 				System.out.println();
 			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

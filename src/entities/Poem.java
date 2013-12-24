@@ -3,12 +3,43 @@ package entities;
 import java.util.List;
 import managers.TonalManager;
 
+/**
+ * Poem
+ * @author wei.he
+ *
+ */
 public class Poem {
-    public String author, title;
-    public int row, col;
+    /**
+     * author
+     */
+    public String author;
+    /**
+     * title
+     */
+    public String title;
+    /**
+     * row count
+     */
+    public int row;
+    /**
+     * column count
+     */
+    public int col;
+    /**
+     * content
+     */
     public String content[];
+    /**
+     * the table of pingze for each character
+     */
     public int pingzeTable[][];
-
+    
+    /**
+     * constructor
+     * @param ti title
+     * @param au author
+     * @param lines lines
+     */
     public Poem(String ti, String au, List<String> lines) {
 	title = ti;
 	author = au;

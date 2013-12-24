@@ -15,28 +15,57 @@ import utils.ChineseUtil;
 
 import entities.TonalInformation;
 
+/**
+ * tonal manager for characters
+ * 
+ * @author wei.he
+ * 
+ */
 public class TonalManager {
 
+    /**
+     * the map which maps a character to its associated tonal informations
+     */
     private Map<Character, List<TonalInformation>> charToTonalInfoMap = null;
+    /**
+     * manager instance
+     */
     private static TonalManager instance = null;
 
+    /**
+     * get manager instance
+     * 
+     * @return instance
+     */
     public static TonalManager getInstance() {
 	if (instance == null)
 	    instance = new TonalManager();
 	return instance;
     }
 
+    /**
+     * private constructor
+     */
     private TonalManager() {
 
     }
 
+    /**
+     * read pingshuiyun(an ancient tonal table), load into memory
+     * 
+     * @param dictFile
+     *            pingshuiyun file
+     */
     public void readPingshuiyun(String dictFile) {
 	try {
 	    charToTonalInfoMap = new HashMap<Character, List<TonalInformation>>();
 	    BufferedReader br = new BufferedReader(new FileReader(new File(
 		    dictFile)));
 	    String line, lastLine = "";
-	    int categoryIndex = 0;
+	    // the section index, the first 2 sections of pingshuiyun are
+	    // characters of ping
+	    // the remaining sections are characters of ze
+	    int sectionIndex = 0;
 	    while ((line = br.readLine()) != null) {
 		line = ChineseUtil.trim(line);
 		if (line.isEmpty()) {
@@ -44,7 +73,7 @@ public class TonalManager {
 		    continue;
 		}
 		if (lastLine.isEmpty()) {
-		    categoryIndex++;
+		    sectionIndex++;
 		}
 
 		int commaIndex = line.indexOf(ChineseUtil.COMMA_CHN);
@@ -55,7 +84,7 @@ public class TonalManager {
 			if (c == ChineseUtil.BLANK_CHN)
 			    continue;
 			TonalInformation info = new TonalInformation(rhythm,
-				categoryIndex <= 2);
+				sectionIndex <= 2);
 			if (!charToTonalInfoMap.containsKey(c))
 			    charToTonalInfoMap.put(c,
 				    new ArrayList<TonalInformation>());
@@ -66,14 +95,15 @@ public class TonalManager {
 	    }
 	    br.close();
 	} catch (IOException e) {
-	    // TODO Auto-generated catch block
 	    e.printStackTrace();
 	}
     }
 
     /**
+     * get pingze info for a given character
      * 
      * @param c
+     *            character
      * @return -1 means unknown, 0 means both, 1 means ze, 2 means ping
      */
     public int getPingzeInfo(char c) {
@@ -90,7 +120,12 @@ public class TonalManager {
 	} else
 	    return -1;
     }
-
+    
+    /**
+     * get yunbus for a character
+     * @param c character
+     * @return yunbus
+     */
     public Set<String> getYunbuInfo(char c) {
 	Set<String> yunbus = new HashSet<String>();
 	List<TonalInformation> infos = charToTonalInfoMap.get(c);
