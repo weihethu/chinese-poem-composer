@@ -483,11 +483,10 @@ public class MainFrame extends JFrame {
 				SUBSTITUTION_FRAME_WIDTH,
 				SUBSTITUTION_FRAME_HEIGHT);
 			substitutionFrame.setVisible(true);
+			substitutionFrame.moveToFront();
 		    }
 		}
-
 	    }
-
 	});
 
 	// when select a candidate for substitution, should update the poem
