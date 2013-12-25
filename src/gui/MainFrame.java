@@ -401,7 +401,7 @@ public class MainFrame extends JFrame {
 	displayControlPanel.add(showCollocation);
 
 	showSource = new JCheckBox("À´Ô´");
-	showSource.setSelected(false);
+	showSource.setSelected(true);
 	showSource.addActionListener(new ActionListener() {
 
 	    @Override
@@ -487,7 +487,7 @@ public class MainFrame extends JFrame {
 		    }
 		}
 	    }
-	});
+	});\
 
 	// when select a candidate for substitution, should update the poem
 	// display
