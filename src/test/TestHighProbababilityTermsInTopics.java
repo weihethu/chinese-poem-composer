@@ -31,7 +31,7 @@ class TermWithProb {
  * @author wei.he
  *
  */
-public class TestTopicModel {
+public class TestHighProbababilityTermsInTopics {
 
 	private static Map<String, double[]> termTopicProbsMap = null;
 
@@ -41,7 +41,7 @@ public class TestTopicModel {
 	public static void main(String[] args) {
 		try {
 			termTopicProbsMap = new HashMap<String, double[]>();
-			BufferedReader br = new BufferedReader(new FileReader(new File("topic1.txt")));
+			BufferedReader br = new BufferedReader(new FileReader(new File("topic.txt")));
 			String line;
 			int nTopic = -1;
 			while ((line = br.readLine()) != null) {

@@ -188,7 +188,7 @@ public class Main {
 		PatternManager.getInstance().readPattern(para.patternPath);
 		PoemManager.getInstance().readPreprocessed(para.poemPath);
 		TokenCollocationManager.getInstance().extractTokenCollocations(
-			para.colloPath, 1.0);
+			para.colloPath, 1.645);
 	    } else
 		System.out.println("ERROR:" + msg);
 	} else if (args.length > 0 && args[0].equalsIgnoreCase("-traintopic")) {

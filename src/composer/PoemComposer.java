@@ -40,7 +40,7 @@ public class PoemComposer {
      * lamda, used to balance the topic concentration score and collocation
      * score
      */
-    private static double lamda = 15;
+    private static double lamda = 30;
 
     /**
      * constructor
@@ -358,16 +358,12 @@ public class PoemComposer {
 	// calculate old score
 	double oldScore = lamda * oldTopicConcentrationScore
 		+ oldCollocationScore;
-	// System.out.println("Old:" + oldScore + "(" +
-	// oldTopicConcentrationScore
-	// + "," + oldCollocationScore + ")");
 	Map<String, Integer> tokensCntMap = calculateTokenCnts(initialPoem.content);
 	// whether there's update in the last iteration
 	boolean changeInLastIter = true;
 	// iterate at most fixed times
 	for (int iteration_cnt = 0; iteration_cnt < MAX_ITERATION_CNT
 		&& changeInLastIter; iteration_cnt++) {
-	    System.out.println(iteration_cnt);
 	    // in each iteration, try to replace each row with a better one
 	    changeInLastIter = false;
 	    for (int i = 0; i < initialPoem.row; i++) {
@@ -386,12 +382,9 @@ public class PoemComposer {
 		// replace the old line with the new line
 		if (bestGradedCandidate != null
 			&& bestGradedCandidate.grade > oldScore) {
-		    // System.out.println(bestGradedCandidate.grade + "->"
-		    // + oldScore);
 		    changeInLastIter = true;
 		    oldScore = bestGradedCandidate.grade;
 		    // update the poem and compose information
-		    initialPoem.content[i] = bestGradedCandidate.candidate.line;
 		    composeInfo.srcs.put(i,
 			    bestGradedCandidate.candidate.sourcePoem);
 		    // update the t-values sum of collocation pairs
@@ -410,6 +403,7 @@ public class PoemComposer {
 			topicDistributions[j] += (newLineTopicDistributions[j] - oldLineTopicDistributions[j]);
 		    }
 
+		    initialPoem.content[i] = bestGradedCandidate.candidate.line;
 		    // update the token-count map
 		    Set<String> replacedLineTokens = ChineseUtil
 			    .Tokenize(bestGradedCandidate.candidate.line);

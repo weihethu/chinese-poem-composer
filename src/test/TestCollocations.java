@@ -24,7 +24,7 @@ public class TestCollocations {
     public static void main(String[] args) {
 	try {
 	    BufferedReader br = new BufferedReader(new FileReader(new File(
-		    "collocation3.txt")));
+		    "mycollo.txt")));
 	    String line;
 	    List<Collocation> collos = new ArrayList<Collocation>();
 	    while ((line = br.readLine()) != null) {
