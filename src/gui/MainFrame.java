@@ -487,7 +487,7 @@ public class MainFrame extends JFrame {
 		    }
 		}
 	    }
-	});\
+	});
 
 	// when select a candidate for substitution, should update the poem
 	// display
