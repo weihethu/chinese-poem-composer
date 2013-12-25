@@ -2,8 +2,10 @@ package managers;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -82,8 +84,8 @@ public class TopicModelManager {
 	nTopic = -1;
 	termTopicProbsMap = new HashMap<String, double[]>();
 	try {
-	    BufferedReader br = new BufferedReader(new FileReader(new File(
-		    trainResultFile)));
+		BufferedReader br = new BufferedReader(new InputStreamReader(
+				new FileInputStream(new File(trainResultFile)), "GBK"));
 	    String line;
 	    while ((line = br.readLine()) != null) {
 		line = line.trim();

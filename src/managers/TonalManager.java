@@ -2,8 +2,10 @@ package managers;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -59,8 +61,8 @@ public class TonalManager {
     public void readPingshuiyun(String dictFile) {
 	try {
 	    charToTonalInfoMap = new HashMap<Character, List<TonalInformation>>();
-	    BufferedReader br = new BufferedReader(new FileReader(new File(
-		    dictFile)));
+	    BufferedReader br = new BufferedReader(new InputStreamReader(
+				new FileInputStream(new File(dictFile)), "GBK"));
 	    String line, lastLine = "";
 	    // the section index, the first 2 sections of pingshuiyun are
 	    // characters of ping

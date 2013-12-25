@@ -2,8 +2,10 @@ package managers;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -60,8 +62,8 @@ public class PatternManager {
     public void readPattern(String patternFile) {
 	try {
 	    nameToPatternInfoMap = new HashMap<String, PatternInformation>();
-	    BufferedReader br = new BufferedReader(new FileReader(new File(
-		    patternFile)));
+	    BufferedReader br = new BufferedReader(new InputStreamReader(
+				new FileInputStream(new File(patternFile)), "GBK"));
 	    String line, patternName = "";
 	    List<String> patternTonalStrs = null;
 	    while ((line = br.readLine()) != null) {
