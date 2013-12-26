@@ -17,6 +17,7 @@ import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.event.HyperlinkEvent;
@@ -28,7 +29,6 @@ import composer.PoemComposer;
 import entities.Collocation;
 import entities.PatternInformation;
 import entities.Poem;
-
 import managers.PatternManager;
 import managers.PoemManager;
 import managers.TonalManager;
@@ -442,6 +442,9 @@ public class MainFrame extends JFrame {
 		assert (pattern != null);
 		composeInfo = new ComposeInformation();
 		composedPoem = PoemComposer.composePoem(pattern, composeInfo);
+		if(composedPoem == null)
+			JOptionPane.showMessageDialog(MainFrame.this, "生成时出错", "错误",
+					JOptionPane.ERROR_MESSAGE);
 		displayPoem();
 	    }
 

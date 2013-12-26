@@ -530,7 +530,7 @@ public class PoemComposer {
      */
     public static Poem composePoem(PatternInformation patternInfo,
 	    ComposeInformation composeInfo) {
-	while (true) {
+    for(int i = 0; i < 10; i++) {
 	    // first get an initial poem in greedy manner, and then
 	    // incremental-update it to get a locally-optimized solution
 	    Poem poem = getInitialPoem(patternInfo, composeInfo);
@@ -541,6 +541,7 @@ public class PoemComposer {
 		continue;
 	    }
 	}
+    return null;
     }
 
     /**
