@@ -33,12 +33,15 @@ public class Collocation implements Comparable<Collocation> {
 
     @Override
     public int compareTo(Collocation other) {
-	// TODO Auto-generated method stub
 	return (token + ":" + pairToken).compareTo(other.token + ":"
 		+ pairToken);
     }
 
     public int hashCode() {
 	return (token + ":" + pairToken).hashCode();
+    }
+    
+    public boolean equals(Collocation other) {
+	return this.compareTo(other) == 0;
     }
 }
