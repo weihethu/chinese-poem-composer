@@ -4,19 +4,22 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 import entities.PatternCheckResult;
 import entities.Poem;
-
 import utils.ChineseUtil;
 
 /**
@@ -85,8 +88,7 @@ public class PoemManager {
 		if (pos1 != -1 && pos2 != -1) {
 		    if (!contentsInPoem.isEmpty()
 			    && checkValidPoem(contentsInPoem)) {
-			writePoemWithPatternInfo(new Poem(title, author,
-				contentsInPoem), bw);
+			writePoem(new Poem(title, author, contentsInPoem), bw);
 		    }
 		    title = line.substring(pos1 + 1, pos2);
 		    contentsInPoem = new ArrayList<String>();
@@ -118,8 +120,7 @@ public class PoemManager {
 		}
 	    }
 	    if (!contentsInPoem.isEmpty() && checkValidPoem(contentsInPoem)) {
-		writePoemWithPatternInfo(
-			new Poem(title, author, contentsInPoem), bw);
+		writePoem(new Poem(title, author, contentsInPoem), bw);
 	    }
 	    bw.close();
 	    br.close();
@@ -184,9 +185,91 @@ public class PoemManager {
 	return true;
     }
 
-    private void writePoemWithPatternInfo(Poem poem, Writer writer)
-	    throws IOException {
-	writer.write("#" + poem.title + " " + poem.author + "\n");
+    /**
+     * get poem popularity information, and write to file
+     * 
+     * @param outputPath
+     *            output path
+     */
+    public void getPoemPopularities(String outputPath) {
+	BufferedWriter bw;
+	try {
+	    bw = new BufferedWriter(new OutputStreamWriter(
+		    new FileOutputStream(new File(outputPath)), "GBK"));
+	    int cnt = 0;
+	    for (Poem poem : this.poems) {
+		System.out.println(++cnt + "/" + this.poems.size());
+		String firstLine = poem.content[0];
+		poem.popularity = getBaiduSearchResultCnt(firstLine);
+		writePoem(poem, bw);
+	    }
+	    bw.close();
+	} catch (IOException e) {
+	    e.printStackTrace();
+	}
+    }
+
+    /**
+     * get result set size when searching in baidu
+     * 
+     * @param str
+     *            search key
+     * @return result-set size
+     */
+    private long getBaiduSearchResultCnt(String str) {
+	long resultCnt = -1;
+	InputStream inputStream = null;
+	InputStreamReader inputStreamReader = null;
+	try {
+	    URL url = new URL("http://www.baidu.com/s?wd=" + str);
+	    inputStream = url.openStream();
+	    inputStreamReader = new InputStreamReader(inputStream, "utf-8");
+
+	    StringBuffer sb = new StringBuffer();
+	    int ch;
+	    while ((ch = inputStreamReader.read()) != -1) {
+		sb.append((char) ch);
+	    }
+	    String content = sb.toString();
+	    String key = "百度为您找到相关结果约";
+	    int startIndex = content.indexOf(key);
+	    if (startIndex >= 0) {
+		startIndex += key.length();
+		int endIndex = startIndex + 1;
+		while (content.charAt(endIndex) != '个')
+		    endIndex++;
+		String resultSetSizeStr = content.substring(startIndex,
+			endIndex);
+		resultSetSizeStr = resultSetSizeStr.replaceAll("\\D", "");
+		resultCnt = Long.parseLong(resultSetSizeStr);
+	    }
+	} catch (Exception ex) {
+	    ex.printStackTrace();
+	} finally {
+	    try {
+		if (inputStreamReader != null)
+		    inputStreamReader.close();
+		if (inputStream != null)
+		    inputStream.close();
+	    } catch (IOException e) {
+		e.printStackTrace();
+	    }
+	}
+	return resultCnt;
+    }
+
+    /**
+     * write the information of a poem to file
+     * 
+     * @param poem
+     *            poem
+     * @param writer
+     *            writer
+     * @throws IOException
+     */
+    private void writePoem(Poem poem, Writer writer) throws IOException {
+	writer.write("#" + poem.title + " " + poem.author + " "
+		+ poem.popularity + "\n");
 	for (int i = 0; i < poem.row; i++) {
 	    writer.write(poem.content[i] + "\n");
 	}

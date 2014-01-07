@@ -255,7 +255,7 @@ public class PoemComposer {
 		// check there exist obvious collocation pairs
 		Set<Collocation> existingCollos = new HashSet<Collocation>();
 		for (int k = 0; k < oldPoem.row / 2; k++) {
-		    if (k != lineIndex % 2)
+		    if (k != lineIndex / 2)
 			existingCollos.add(composeInfo.collos.get(k));
 		}
 		Collocation maxCollo;

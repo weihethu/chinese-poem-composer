@@ -33,6 +33,10 @@ public class Poem {
      * the table of pingze for each character
      */
     public int pingzeTable[][];
+    /**
+     * size of result sets when searching in baidu
+     */
+    public long popularity;
     
     /**
      * constructor
@@ -60,5 +64,6 @@ public class Poem {
 			lines.get(i).charAt(j));
 	    }
 	}
+	popularity = -1;
     }
 }

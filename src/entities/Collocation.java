@@ -2,8 +2,9 @@ package entities;
 
 /**
  * Collocation
+ * 
  * @author wei.he
- *
+ * 
  */
 public class Collocation implements Comparable<Collocation> {
     /**
@@ -18,12 +19,16 @@ public class Collocation implements Comparable<Collocation> {
      * t value
      */
     public double t_value;
-    
+
     /**
      * constructor
-     * @param tok first token
-     * @param pair second token
-     * @param t t value
+     * 
+     * @param tok
+     *            first token
+     * @param pair
+     *            second token
+     * @param t
+     *            t value
      */
     public Collocation(String tok, String pair, double t) {
 	token = tok;
@@ -40,8 +45,11 @@ public class Collocation implements Comparable<Collocation> {
     public int hashCode() {
 	return (token + ":" + pairToken).hashCode();
     }
-    
-    public boolean equals(Collocation other) {
-	return this.compareTo(other) == 0;
+
+    public boolean equals(Object obj) {
+	if (obj instanceof Collocation) {
+	    return this.compareTo((Collocation) obj) == 0;
+	} else
+	    return false;
     }
 }
