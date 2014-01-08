@@ -355,6 +355,11 @@ public class MainFrame extends JFrame {
 	generateControlPanel.add(new JLabel("平仄:"));
 	generateControlPanel.add(pingzeCombo);
 
+	final JCheckBox priorityOfHightPopularityCheckBox = new JCheckBox(
+		"名篇优先");
+	priorityOfHightPopularityCheckBox.setSelected(false);
+	generateControlPanel.add(priorityOfHightPopularityCheckBox);
+
 	JButton generateBtn = new JButton("生成");
 	generateControlPanel.add(generateBtn);
 
@@ -441,10 +446,11 @@ public class MainFrame extends JFrame {
 			.get(patternName);
 		assert (pattern != null);
 		composeInfo = new ComposeInformation();
-		composedPoem = PoemComposer.composePoem(pattern, composeInfo);
-		if(composedPoem == null)
-			JOptionPane.showMessageDialog(MainFrame.this, "生成时出错", "错误",
-					JOptionPane.ERROR_MESSAGE);
+		composedPoem = PoemComposer.composePoem(pattern, composeInfo,
+			priorityOfHightPopularityCheckBox.isSelected());
+		if (composedPoem == null)
+		    JOptionPane.showMessageDialog(MainFrame.this, "生成时出错",
+			    "错误", JOptionPane.ERROR_MESSAGE);
 		displayPoem();
 	    }
 
@@ -474,7 +480,9 @@ public class MainFrame extends JFrame {
 			currentSubstLineIndex = url.charAt(7) - '0';
 			substitutionCandidates = PoemComposer
 				.findBestReplacements(pattern, composedPoem,
-					currentSubstLineIndex, composeInfo);
+					currentSubstLineIndex, composeInfo,
+					priorityOfHightPopularityCheckBox
+						.isSelected());
 			substitutionEditorPane
 				.setText(getSubstitutionHtmlText());
 			substitutionFrame.setTitle("替换-"

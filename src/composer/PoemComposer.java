@@ -138,21 +138,26 @@ public class PoemComposer {
      *            the row position to replace
      * @param composeInfo
      *            compose information
+     * @param priorityOfHighPopularity
+     *            whether we should prioritize using lines from poems with
+     *            higher popularity
      * @return a sorted list of candidates
      */
     public static List<GradedCandidate> findBestReplacements(
 	    PatternInformation patternInfo, Poem poem, int lineIndex,
-	    ComposeInformation composeInfo) {
+	    ComposeInformation composeInfo, boolean priorityOfHighPopularity) {
 	if (lineIndex < 0 || lineIndex >= poem.row)
 	    return null;
 	double[] topicDistributions = TopicModelManager.getInstance()
 		.getTopicProbVector(poem.content);
 	double collocationTSum = calculateColloTSum(poem.row, composeInfo);
+	int popularityScoreSum = calculatePopularityScoreSum(poem.row,
+		composeInfo);
 	Map<String, Integer> tokensCntMap = calculateTokenCnts(poem.content);
 
 	List<GradedCandidate> candidates = findReplacements(patternInfo, poem,
 		lineIndex, composeInfo, topicDistributions, tokensCntMap,
-		collocationTSum);
+		collocationTSum, popularityScoreSum, priorityOfHighPopularity);
 
 	Collections.sort(candidates);
 	// the dataset contains duplicate poems, so there maybe duplicate
@@ -184,12 +189,18 @@ public class PoemComposer {
      *            token-count map of the existing poem
      * @param collocationTSum
      *            the sum of t-values of collocation pairs in existing poem
+     * @param popularityScoreSum
+     *            the sum of popularity scores in existing poem
+     * @param priorityOfHighPopularity
+     *            whether we should prioritize using lines from poems with
+     *            higher popularity
      * @return an unsorted list of candidates
      */
     private static List<GradedCandidate> findReplacements(
 	    PatternInformation patternInfo, Poem oldPoem, int lineIndex,
 	    ComposeInformation composeInfo, double[] topicDistributions,
-	    Map<String, Integer> tokensCntMap, double collocationTSum) {
+	    Map<String, Integer> tokensCntMap, double collocationTSum,
+	    int popularityScoreSum, boolean priorityOfHighPopularity) {
 	List<GradedCandidate> candidates = new ArrayList<GradedCandidate>();
 	int dominantTokenThreshold = getDominantTokenThreshold(patternInfo.row);
 	// calculate the topic distributions of the other rows
@@ -285,9 +296,14 @@ public class PoemComposer {
 		newCollocationTSum += maxCollo.t_value;
 		double newCollocationScore = newCollocationTSum
 			/ (oldPoem.row / 2);
+		int newPopularityScoreSum = popularityScoreSum;
+		newPopularityScoreSum -= composeInfo.srcs.get(lineIndex).popularityScore;
+		newPopularityScoreSum += poem.popularityScore;
 		// calculate new score
 		double newScore = lamda * newTopicConcentrationScore
 			+ newCollocationScore;
+		if (priorityOfHighPopularity)
+		    newScore *= ((double) newPopularityScoreSum / oldPoem.row);
 		candidates.add(new GradedCandidate(
 			new LineInPoem(newLine, poem), newScore, maxCollo));
 	    }
@@ -310,6 +326,23 @@ public class PoemComposer {
 	for (int i = 0; i < rowCnt / 2; i++)
 	    collocationTSum += composeInfo.collos.get(i).t_value;
 	return collocationTSum;
+    }
+
+    /**
+     * calculate the sum of popularity scores of a poem
+     * 
+     * @param rowCnt
+     *            the row number
+     * @param composeInfo
+     *            the compose information
+     * @return popularity score sum
+     */
+    private static int calculatePopularityScoreSum(int rowCnt,
+	    ComposeInformation composeInfo) {
+	int scoreSum = 0;
+	for (int i = 0; i < rowCnt; i++)
+	    scoreSum += composeInfo.srcs.get(i).popularityScore;
+	return scoreSum;
     }
 
     /**
@@ -342,9 +375,13 @@ public class PoemComposer {
      *            initial poem
      * @param composeInfo
      *            compose information
+     * @param priorityOfHighPopularity
+     *            whether we should prioritize using lines from poems with
+     *            higher popularity
      */
     private static void tunePoem(PatternInformation patternInfo,
-	    Poem initialPoem, ComposeInformation composeInfo) {
+	    Poem initialPoem, ComposeInformation composeInfo,
+	    boolean priorityOfHighPopularity) {
 	// calculate old topic distributions
 	double[] topicDistributions = TopicModelManager.getInstance()
 		.getTopicProbVector(initialPoem.content);
@@ -353,6 +390,8 @@ public class PoemComposer {
 			CENTER_TOPIC_CNT);
 	// calculate old t-values sum of collocation pairs
 	double collocationTSum = calculateColloTSum(initialPoem.row,
+		composeInfo);
+	int popularityScoreSum = calculatePopularityScoreSum(initialPoem.row,
 		composeInfo);
 	double oldCollocationScore = collocationTSum / (initialPoem.row / 2);
 	// calculate old score
@@ -370,7 +409,8 @@ public class PoemComposer {
 		GradedCandidate bestGradedCandidate = null;
 		List<GradedCandidate> candidates = findReplacements(
 			patternInfo, initialPoem, i, composeInfo,
-			topicDistributions, tokensCntMap, collocationTSum);
+			topicDistributions, tokensCntMap, collocationTSum,
+			popularityScoreSum, priorityOfHighPopularity);
 		// find the best candidate, there's no need to sort, we just
 		// need to iterate each element
 		for (GradedCandidate candidate : candidates) {
@@ -385,6 +425,8 @@ public class PoemComposer {
 		    changeInLastIter = true;
 		    oldScore = bestGradedCandidate.grade;
 		    // update the poem and compose information
+		    popularityScoreSum += (bestGradedCandidate.candidate.sourcePoem.popularityScore - composeInfo.srcs
+			    .get(i).popularityScore);
 		    composeInfo.srcs.put(i,
 			    bestGradedCandidate.candidate.sourcePoem);
 		    // update the t-values sum of collocation pairs
@@ -517,7 +559,7 @@ public class PoemComposer {
 	    composeInfo.srcs.put(composedContent.size(), chosen.sourcePoem);
 	    composedContent.add(chosen.line);
 	}
-	return new Poem("集句", "计算机", composedContent);
+	return new Poem("集句", "计算机", -1, composedContent);
     }
 
     /**
@@ -526,22 +568,27 @@ public class PoemComposer {
      * @param patternInfo
      *            the pattern requirement associated with the poem
      * @param composeInfo
+     *            the compose information
+     * @param priorityOfHighPopularity
+     *            whether we should prioritize using lines from poems with
+     *            higher popularity
      * @return generated poem
      */
     public static Poem composePoem(PatternInformation patternInfo,
-	    ComposeInformation composeInfo) {
-    for(int i = 0; i < 10; i++) {
+	    ComposeInformation composeInfo, boolean priorityOfHighPopularity) {
+	for (int i = 0; i < 10; i++) {
 	    // first get an initial poem in greedy manner, and then
 	    // incremental-update it to get a locally-optimized solution
 	    Poem poem = getInitialPoem(patternInfo, composeInfo);
 	    if (poem != null) {
-		tunePoem(patternInfo, poem, composeInfo);
+		tunePoem(patternInfo, poem, composeInfo,
+			priorityOfHighPopularity);
 		return poem;
 	    } else {
 		continue;
 	    }
 	}
-    return null;
+	return null;
     }
 
     /**

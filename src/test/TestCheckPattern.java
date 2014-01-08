@@ -31,7 +31,7 @@ public class TestCheckPattern {
 		lines.add("天涯若比邻");
 		lines.add("无为在歧路");
 		lines.add("儿女共沾巾");
-		Poem poem = new Poem("送杜少府之任蜀州", "王勃", lines);
+		Poem poem = new Poem("送杜少府之任蜀州", "王勃", -1, lines);
 		PatternCheckResult res = PatternManager.getInstance().findOptimalPattern(poem);
 		System.out.println(res.patternName + " " + res.yunbu + " " + res.pingzeErrCnt + " " + res.yunjiaoErrCnt);
 	}

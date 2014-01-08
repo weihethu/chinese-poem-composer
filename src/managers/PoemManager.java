@@ -16,6 +16,8 @@ import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import entities.PatternCheckResult;
@@ -37,6 +39,17 @@ public class PoemManager {
      * poems
      */
     public List<Poem> poems;
+
+    /**
+     * the ranking thresholds for evaluating a poem's popularity
+     */
+    private static int[] popularity_rankthresholds = new int[] { 20, 50, 200,
+	    500, 2000, 5000, Integer.MAX_VALUE };
+    
+    /**
+     * the corresponding scores of each ranking category
+     */
+    private static int[] popularity_scores = new int[] { 10, 8, 6, 4, 3, 2, 1 };
 
     /**
      * get manager instance
@@ -88,7 +101,8 @@ public class PoemManager {
 		if (pos1 != -1 && pos2 != -1) {
 		    if (!contentsInPoem.isEmpty()
 			    && checkValidPoem(contentsInPoem)) {
-			writePoem(new Poem(title, author, contentsInPoem), bw);
+			writePoem(new Poem(title, author, -1, contentsInPoem),
+				bw);
 		    }
 		    title = line.substring(pos1 + 1, pos2);
 		    contentsInPoem = new ArrayList<String>();
@@ -120,7 +134,7 @@ public class PoemManager {
 		}
 	    }
 	    if (!contentsInPoem.isEmpty() && checkValidPoem(contentsInPoem)) {
-		writePoem(new Poem(title, author, contentsInPoem), bw);
+		writePoem(new Poem(title, author, -1, contentsInPoem), bw);
 	    }
 	    bw.close();
 	    br.close();
@@ -141,6 +155,7 @@ public class PoemManager {
 	    BufferedReader br = new BufferedReader(new InputStreamReader(
 		    new FileInputStream(new File(preprocessedFile)), "GBK"));
 	    String line, title = "", author = "";
+	    long popularity = -1;
 	    List<String> contentsInPoem = new ArrayList<String>();
 	    while ((line = br.readLine()) != null) {
 		line = line.trim();
@@ -149,11 +164,20 @@ public class PoemManager {
 		else if (line.startsWith("#")) {
 		    // this line contains the title and author
 		    if (!contentsInPoem.isEmpty())
-			poems.add(new Poem(title, author, contentsInPoem));
+			poems.add(new Poem(title, author, popularity,
+				contentsInPoem));
 		    line = line.substring(1);
 		    String parts[] = line.split("\\s+");
 		    title = parts[0];
-		    author = (parts.length < 2) ? "" : parts[1];
+		    try {
+			// new format
+			popularity = Long.parseLong(parts[parts.length - 1]);
+			author = (parts.length < 3) ? "" : parts[1];
+		    } catch (NumberFormatException ex) {
+			// old format
+			popularity = -1;
+			author = (parts.length < 2) ? "" : parts[1];
+		    }
 		    contentsInPoem = new ArrayList<String>();
 		} else if (line.startsWith("%")) {
 		    // this line contains the pattern check result, don't need
@@ -163,13 +187,39 @@ public class PoemManager {
 		}
 	    }
 	    if (!contentsInPoem.isEmpty())
-		poems.add(new Poem(title, author, contentsInPoem));
+		poems.add(new Poem(title, author, popularity, contentsInPoem));
 	    br.close();
 	} catch (IOException e) {
 	    e.printStackTrace();
 	}
+
+	Collections.sort(poems, new Comparator<Poem>() {
+
+	    @Override
+	    public int compare(Poem poem1, Poem poem2) {
+		return Long.valueOf(poem2.popularity).compareTo(
+			Long.valueOf(poem1.popularity));
+	    }
+
+	});
+
+	int current_index = 0;
+	for (int i = 0; i < poems.size(); i++) {
+	    Poem poem = poems.get(i);
+	    if (i < popularity_rankthresholds[current_index])
+		poem.popularityScore = popularity_scores[current_index];
+	    else
+		current_index++;
+	}
     }
 
+    /**
+     * check if a poem is valid
+     * 
+     * @param contents
+     *            contents
+     * @return valid or not
+     */
     private boolean checkValidPoem(List<String> contents) {
 	if (contents.size() != 4 && contents.size() != 8)
 	    return false;
@@ -194,15 +244,39 @@ public class PoemManager {
     public void getPoemPopularities(String outputPath) {
 	BufferedWriter bw;
 	try {
-	    bw = new BufferedWriter(new OutputStreamWriter(
-		    new FileOutputStream(new File(outputPath)), "GBK"));
 	    int cnt = 0;
 	    for (Poem poem : this.poems) {
-		System.out.println(++cnt + "/" + this.poems.size());
+		cnt++;
+		if (poem.popularity >= 0)
+		    continue;
+		System.out.println(cnt + "/" + this.poems.size());
 		String firstLine = poem.content[0];
-		poem.popularity = getBaiduSearchResultCnt(firstLine);
-		writePoem(poem, bw);
+		int waitCnt = 1;
+		while (true) {
+		    poem.popularity = getBaiduSearchResultCnt(firstLine);
+		    if (poem.popularity >= 0) {
+			waitCnt = 1;
+			break;
+		    } else {
+			if (waitCnt <= 16) {
+			    waitCnt *= 2;
+			    System.out.println("waiting " + waitCnt + " secs");
+			} else {
+			    System.out.println("stop waiting..");
+			    break;
+			}
+		    }
+		    try {
+			Thread.sleep(1000 * waitCnt);
+		    } catch (InterruptedException e) {
+			e.printStackTrace();
+		    }
+		}
 	    }
+	    bw = new BufferedWriter(new OutputStreamWriter(
+		    new FileOutputStream(new File(outputPath)), "GBK"));
+	    for (Poem poem : this.poems)
+		writePoem(poem, bw);
 	    bw.close();
 	} catch (IOException e) {
 	    e.printStackTrace();
@@ -221,7 +295,7 @@ public class PoemManager {
 	InputStream inputStream = null;
 	InputStreamReader inputStreamReader = null;
 	try {
-	    URL url = new URL("http://www.baidu.com/s?wd=" + str);
+	    URL url = new URL("http://www.baidu.com/s?wd=\"" + str + "\"");
 	    inputStream = url.openStream();
 	    inputStreamReader = new InputStreamReader(inputStream, "utf-8");
 
@@ -231,10 +305,13 @@ public class PoemManager {
 		sb.append((char) ch);
 	    }
 	    String content = sb.toString();
-	    String key = "百度为您找到相关结果约";
+	    // System.out.println(content);
+	    String key = "百度为您找到相关结果";
 	    int startIndex = content.indexOf(key);
 	    if (startIndex >= 0) {
 		startIndex += key.length();
+		if (!Character.isDigit(content.charAt(startIndex)))//some times there's an additional '約'
+		    startIndex++;
 		int endIndex = startIndex + 1;
 		while (content.charAt(endIndex) != '个')
 		    endIndex++;

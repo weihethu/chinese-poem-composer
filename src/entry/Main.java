@@ -201,18 +201,6 @@ public class Main {
 		TopicModelManager.getInstance().train(10, para.topicPath);
 	    } else
 		System.out.println("ERROR:" + msg);
-	} else if (args.length > 0
-		&& args[0].equalsIgnoreCase("-getpopularity")) {
-	    String msg = para.checkFileExist(true, true, true, false, false);
-	    if (msg.equals(Parameter.SUCCESS)) {
-		TonalManager.getInstance()
-			.readPingshuiyun(para.pingshuiyunPath);
-		PatternManager.getInstance().readPattern(para.patternPath);
-		PoemManager.getInstance().readPreprocessed(para.poemPath);
-		PoemManager.getInstance().getPoemPopularities(
-			"poems_with_popularity.txt");
-	    } else
-		System.out.println("ERROR:" + msg);
 	} else {
 	    String msg = para.checkFileExist(true, true, true, true, true);
 	    if (msg.equalsIgnoreCase(Parameter.SUCCESS)) {

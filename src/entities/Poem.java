@@ -39,16 +39,23 @@ public class Poem {
     public long popularity;
     
     /**
+     * a score given the poem's popularity
+     */
+    public int popularityScore;
+    
+    /**
      * constructor
      * @param ti title
      * @param au author
+     * @param po popularity
      * @param lines lines
      */
-    public Poem(String ti, String au, List<String> lines) {
+    public Poem(String ti, String au, long po, List<String> lines) {
 	title = ti;
 	author = au;
 	row = lines.size();
 	col = lines.get(0).length();
+	popularity = po;
 	assert (row == 4 || row == 8);
 	assert (col == 5 || col == 7);
 	content = new String[row];
@@ -64,6 +71,5 @@ public class Poem {
 			lines.get(i).charAt(j));
 	    }
 	}
-	popularity = -1;
     }
 }
