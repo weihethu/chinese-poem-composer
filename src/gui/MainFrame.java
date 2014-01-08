@@ -281,7 +281,7 @@ public class MainFrame extends JFrame {
 	    text += "<p>没有可以替换该句的候选!</p>\n";
 	else {
 	    text += "<p>单击下面的候选以更改:</p>\n";
-	    for (int i = 0; i < Math.min(10, substitutionCandidates.size()); i++) {
+	    for (int i = 0; i < Math.min(20, substitutionCandidates.size()); i++) {
 		text += "<p><a href=\"http://" + i + ".select\">"
 			+ substitutionCandidates.get(i).candidate.line
 			+ "</a></p>\n";
@@ -508,10 +508,12 @@ public class MainFrame extends JFrame {
 	    public void hyperlinkUpdate(HyperlinkEvent evt) {
 		if (evt.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
 		    String url = evt.getURL().toString();
-		    if (url.matches("http\\://\\d\\.select")
+		    if (url.matches("http\\://(\\d+)\\.select")
 			    && currentSubstLineIndex >= 0
 			    && currentSubstLineIndex < composedPoem.row) {
-			int candidateIndex = url.charAt(7) - '0';
+			int endIndex = url.lastIndexOf('.');
+			int candidateIndex = Integer.parseInt(url.substring(7,
+				endIndex));
 			GradedCandidate bestGradedCandidate = substitutionCandidates
 				.get(candidateIndex);
 			composedPoem.content[currentSubstLineIndex] = bestGradedCandidate.candidate.line;
